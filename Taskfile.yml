@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3"
+
+vars:
+  APP_NAME: "justext"
+  VERSION: "v1.0.0"
+
+tasks:
+  default:
+    desc: Print all tasks
+    cmd: task --list-all
+    silent: true
+  build:
+    cmd: cargo build --release
+    silent: true
+  linbundle:
+    cmds:
+      - mkdir -p bundles/{{.VERSION}}
+      - task: build
+      - task: build-rpm
+      - task: build-gz
+    silent: true
+  upx:
+    cmd: upx --best --lzma justext
+    silent: true
+  build-rpm:
+    cmds:
+      - mkdir -p bundles/{{.VERSION}}
+      - rm -rf rpmdude_build/RPMS/*
+      - cp target/release/justext rpmdude_build/SOURCES/
+      - rpmdude build
+      - cp rpmdude_build/RPMS/x86_64/*.rpm bundles/{{.VERSION}}/{{.APP_NAME}}-{{.VERSION}}-linux-x86_64.rpm
+    silent: true
+  build-gz:
+    cmds:
+      - mkdir -p bundles/{{.VERSION}}
+      - |
+        tar -czf bundles/{{.VERSION}}/{{.APP_NAME}}-{{.VERSION}}-linux-x86_64.tar.gz \
+          target/release/justext \
+          rpmdude_build/SOURCES/justext.desktop \
+          rpmdude_build/SOURCES/justext.png
+    silent: true

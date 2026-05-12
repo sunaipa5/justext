@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Justext
+Exec=justext %u
+Icon=justext
+Type=Application
+Terminal=false
+StartupWMClass=org.sunaipa.justext
+Categories=Utility;TextEditor;
+MimeType=text/plain;text/x-go;text/x-csrc;text/x-chdr;text/x-python;text/x-rust;
+Keywords=text;editor;rust;

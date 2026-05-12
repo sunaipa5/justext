@@ -1,0 +1,543 @@
+import { VerticalBox, ScrollView } from "std-widgets.slint";
+
+export component AppWindow inherits Window {
+    min-width: 400px;
+    min-height: 400px;
+    background: #1a1a1a;
+    title: window_title;
+
+    in-out property <string> text <=> input.text;
+    in property <string> window_title: "JusText";
+    in property <string> line_numbers: "1";
+    out property <bool> window_focused: fs.has-focus;
+
+    in-out property <bool> is_dirty: false;
+    in-out property <bool> show_close_modal: false;
+    in-out property <bool> show_about_modal: false;
+
+    property <bool> show_file_menu: false;
+    property <bool> show_edit_menu: false;
+    property <bool> show_help_menu: false;
+
+    callback save_requested();
+    callback copy_all_requested();
+    callback cut_all_requested();
+    callback delete_all_requested();
+    callback open_requested();
+    callback close_anyway();
+    callback save_and_close();
+    callback open_url(string);
+
+    fs := FocusScope {
+        width: 100%;
+        height: 100%;
+
+        key-pressed(event) => {
+            if (event.modifiers.control && event.text == "s") {
+                root.save_requested();
+                root.is_dirty = false;
+                return accept;
+            }
+            return reject;
+        }
+
+        VerticalLayout {
+            spacing: 0px;
+            padding: 0px;
+
+            // --- Menu Bar ---
+            Rectangle {
+                height: 40px;
+                background: #252525;
+                z: 100;
+                HorizontalLayout {
+                    padding-left: 10px;
+                    spacing: 5px;
+                    alignment: start;
+
+                    // --- File ---
+                    Rectangle {
+                        width: file_text.preferred-width + 20px;
+                        file_text := Text {
+                            text: "File";
+                            color: #eeeeee;
+                            font-size: 16px;
+                            vertical-alignment: center;
+                        }
+
+                        TouchArea {
+                            clicked => {
+                                root.show_file_menu = !root.show_file_menu;
+                                root.show_edit_menu = false;
+                            }
+                        }
+
+                        if root.show_file_menu: Rectangle {
+                            x: 0px;
+                            y: 40px;
+                            width: 160px;
+                            height: 80px;
+                            background: #333333;
+                            border-width: 1px;
+                            border-color: #444444;
+                            z: 100;
+
+                            VerticalLayout {
+                                padding: 5px;
+                                spacing: 5px;
+
+                                // --- Open ---
+                                    Rectangle {
+                                    height: 30px;
+                                    background: open_ta.has-hover ? #444444 : transparent;
+                                    Text {
+                                        x: 10px;
+                                        text: "Open";
+                                        color: white;
+                                        vertical-alignment: center;
+                                    }
+
+                                    open_ta := TouchArea {
+                                        clicked => {
+                                            root.show_file_menu = false;
+                                            root.open_requested();
+                                        }
+                                    }
+
+                                    // --- Save ---
+                                    Rectangle {
+                                        height: 30px;
+                                        background: save_ta.has-hover ? #444444 : transparent;
+                                        Text {
+                                            x: 10px;
+                                            text: "Save (Ctrl+S)";
+                                            color: white;
+                                            vertical-alignment: center;
+                                        }
+
+                                        save_ta := TouchArea {
+                                            clicked => {
+                                                root.show_file_menu = false;
+                                                root.save_requested();
+                                                root.is_dirty = false;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // --- Edit ---
+                    Rectangle {
+                        width: edit_text.preferred-width + 20px;
+                        edit_text := Text {
+                            text: "Edit";
+                            color: #eeeeee;
+                            font-size: 16px;
+                            vertical-alignment: center;
+                        }
+
+                        TouchArea {
+                            clicked => {
+                                root.show_edit_menu = !root.show_edit_menu;
+                                root.show_file_menu = false;
+                            }
+                        }
+
+                        if root.show_edit_menu: Rectangle {
+                            x: 0px;
+                            y: 40px;
+                            width: 160px;
+                            height: 120px;
+                            background: #333333;
+                            border-width: 1px;
+                            border-color: #444444;
+                            VerticalLayout {
+                                padding: 4px;
+                                Rectangle {
+                                    height: 35px;
+                                    Text {
+                                        x: 12px;
+                                        text: "Copy All";
+                                        color: white;
+                                    }
+
+                                    TouchArea {
+                                        clicked => {
+                                            root.copy_all_requested();
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    height: 35px;
+                                    Text {
+                                        x: 12px;
+                                        text: "Cut All";
+                                        color: white;
+                                    }
+
+                                    TouchArea {
+                                        clicked => {
+                                            root.cut_all_requested();
+                                            root.is_dirty = true;
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    height: 35px;
+                                    Text {
+                                        x: 12px;
+                                        text: "Delete All";
+                                        color: white;
+                                    }
+
+                                    TouchArea {
+                                        clicked => {
+                                            root.delete_all_requested();
+                                            root.is_dirty = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // --- Help ---
+                    Rectangle {
+                        width: help_text.preferred-width + 20px;
+                        help_text := Text {
+                            text: "Help";
+                            color: #eeeeee;
+                            font-size: 16px;
+                            vertical-alignment: center;
+                        }
+
+                        TouchArea {
+                            clicked => {
+                                root.show_help_menu = !root.show_help_menu;
+                                root.show_file_menu = false;
+                                root.show_edit_menu = false;
+                            }
+                        }
+
+                        if root.show_help_menu: Rectangle {
+                            x: 0px;
+                            y: 40px;
+                            width: 140px;
+                            height: 40px;
+                            background: #333333;
+                            border-width: 1px;
+                            border-color: #444444;
+                            Text {
+                                x: 15px;
+                                text: "About Justext";
+                                color: white;
+                                vertical-alignment: center;
+                            }
+
+                            TouchArea {
+                                clicked => {
+                                    root.show_help_menu = false;
+                                    root.show_about_modal = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // --- Editor Area ---
+            sv := ScrollView {
+                viewport-height: Math.max(self.height, input.preferred-height + 50px);
+
+                if (root.show_file_menu || root.show_edit_menu): TouchArea {
+                    width: 100%;
+                    height: 100%;
+                    z: 90;
+                    clicked => {
+                        root.show_file_menu = false;
+                        root.show_edit_menu = false;
+                    }
+                }
+
+                HorizontalLayout {
+                    padding: 0px;
+                    spacing: 0px;
+                    Rectangle {
+                        width: 50px;
+                        background: #1e1e1e;
+                        Text {
+                            y: input.y;
+                            text: root.line_numbers;
+                            color: #555555;
+                            font-size: 17px;
+                            horizontal-alignment: center;
+                        }
+                    }
+
+                    Rectangle {
+                        background: #1a1a1a;
+                        input := TextInput {
+                            width: 100%;
+                            height: 100%;
+                            font-size: 17px;
+                            color: #d4d4d4;
+                            single-line: false;
+                            wrap: word-wrap;
+                            x: 10px;
+                            y: 5px;
+                            init => {
+                                self.focus();
+                            }
+                            edited => {
+                                root.is_dirty = true;
+                            }
+                            cursor-position-changed(cpos) => {
+                                if (cpos.y + 60px > sv.height - sv.viewport-y) {
+                                    sv.viewport-y = -(cpos.y + 60px - sv.height);
+                                } else if (cpos.y < -sv.viewport-y) {
+                                    sv.viewport-y = -cpos.y;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // --- Close Modal ---
+    if show_close_modal: Rectangle {
+        background: #000000aa;
+        z: 1000;
+        TouchArea {
+            clicked => {
+                root.show_close_modal = false;
+            }
+        }
+
+        Rectangle {
+            width: 340px;
+            height: 160px;
+            background: #2d2d2d;
+            border-radius: 8px;
+            border-width: 1px;
+            border-color: #444444;
+            VerticalLayout {
+                padding: 20px;
+                spacing: 20px;
+                Text {
+                    text: "You have unsaved changes. Do you want to save before exiting?";
+                    color: white;
+                    font-size: 14px;
+                    wrap: word-wrap;
+                    horizontal-alignment: center;
+                }
+
+                HorizontalLayout {
+                    spacing: 10px;
+                    alignment: center;
+                    Rectangle {
+                        width: 80px;
+                        height: 32px;
+                        background: #2ecc71;
+                        border-radius: 4px;
+                        Text {
+                            text: "Save";
+                            color: white;
+                        }
+
+                        TouchArea {
+                            clicked => {
+                                root.save_and_close();
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        width: 100px;
+                        height: 32px;
+                        background: #e74c3c;
+                        border-radius: 4px;
+                        Text {
+                            text: "Don't Save";
+                            color: white;
+                        }
+
+                        TouchArea {
+                            clicked => {
+                                root.close_anyway();
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        width: 80px;
+                        height: 32px;
+                        background: #555555;
+                        border-radius: 4px;
+                        Text {
+                            text: "Cancel";
+                            color: white;
+                        }
+
+                        TouchArea {
+                            clicked => {
+                                root.show_close_modal = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // --- About Modal ---
+    if show_about_modal: Rectangle {
+        background: #000000bd; // Biraz daha koyu ve derin bir maske
+            z: 1100;
+
+        // Modal dışına tıklayınca kapanma özelliği
+            TouchArea {
+            clicked => {
+                root.show_about_modal = false;
+            }
+        }
+
+        Rectangle {
+            width: 340px;
+            height: 320px;
+            background: #1e1e1e;
+            border-radius: 12px;
+            border-width: 1px;
+            border-color: #333333;
+                // Hafif bir gölge efekti (Drop shadow simülasyonu)
+                clip: true;
+
+            // --- Sağ Üst Kapatma Çarpısı ---
+                Rectangle {
+                x: parent.width - 35px;
+                y: 10px;
+                width: 25px;
+                height: 25px;
+                border-radius: 4px;
+                background: close_ta.has-hover ? #ff5f56 : transparent;
+
+                Text {
+                    text: "×";
+                    font-size: 20px;
+                    color: close_ta.has-hover ? white : #888888;
+                }
+
+                close_ta := TouchArea {
+                    clicked => {
+                        root.show_about_modal = false;
+                    }
+                }
+            }
+
+            VerticalLayout {
+                padding: 30px;
+                spacing: 0px;
+                alignment: start;
+                //padding-bottom: 10px;
+
+                // Başlık Grubu
+                    HorizontalLayout {
+                    alignment: center;
+                    spacing: 8px;
+                    padding-bottom: 10px;
+
+                    Text {
+                        text: "Justext";
+                        font-size: 26px;
+                        font-weight: 800;
+                        color: #c061cb; // Daha canlı bir mor tonu
+                        }
+
+                    Text {
+                        text: "v0.1.0";
+                        font-size: 14px;
+                        color: #666666;
+                        vertical-alignment: bottom;
+                    }
+                }
+
+                // Slogan
+                    Text {
+                    text: "Just a text editor.";
+                    color: #bbbbbb;
+                    font-size: 14px;
+                    horizontal-alignment: center;
+                }
+
+                Rectangle {
+                    height: 1px;
+                    background: #333333;
+                    width: 100%;
+                }
+
+                // --- Link area ---
+                VerticalLayout {
+                    padding-top: 20px;
+                    spacing: 12px;
+
+                    Text {
+                        text: "github.com/sunaipa5";
+                        font-size: 13px;
+                        color: link1.has-hover ? #c061cb : #8b949e;
+                        horizontal-alignment: center;
+                        link1 := TouchArea {
+                            clicked => {
+                                root.open_url("https://github.com/sunaipa5");
+                            }
+                        }
+                    }
+
+                    Text {
+                        text: "codeberg.org/sunaipa";
+                        font-size: 13px;
+                        color: link2.has-hover ? #c061cb : #8b949e;
+                        horizontal-alignment: center;
+                        link2 := TouchArea {
+                            clicked => {
+                                root.open_url("https://codeberg.org/sunaipa");
+                            }
+                        }
+                    }
+
+                    Text {
+                        text: "www.sunaipa.org";
+                        font-size: 13px;
+                        color: link3.has-hover ? #c061cb : #8b949e;
+                        horizontal-alignment: center;
+                        link3 := TouchArea {
+                            clicked => {
+                                root.open_url("https://www.sunaipa.org");
+                            }
+                        }
+                    }
+                }
+
+                VerticalLayout {
+                    alignment: end;
+                    padding-top: 30px;
+                    Text {
+                        text: "MIT License";
+                        font-size: 11px;
+                        color: link4.has-hover ? #c061cb : #8b949e;
+                        horizontal-alignment: center;
+                        link4 := TouchArea {
+                            clicked => {
+                                root.open_url("https://mit-license.org/");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

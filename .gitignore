@@ -1,0 +1,6 @@
+/target
+/bundles
+
+justext
+*.rpm
+tasks.md

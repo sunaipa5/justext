@@ -1,0 +1,22 @@
+[package]
+name = "justext"
+version = "1.0.0"
+edition = "2024"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[dependencies]
+slint = { version="1.16.1", features = ["backend-winit", "renderer-femtovg"] }
+i-slint-backend-winit = "1.16.1"
+rfd = "0.17.2"
+arboard = "3.6.1"
+directories = "6.0.0"
+webbrowser = "1.2.1"
+
+[build-dependencies]
+slint-build = "1.16.1"
