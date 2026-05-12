@@ -397,11 +397,10 @@ export component AppWindow inherits Window {
 
     // --- About Modal ---
     if show_about_modal: Rectangle {
-        background: #000000bd; // Biraz daha koyu ve derin bir maske
-            z: 1100;
+        background: #000000bd;
+        z: 1100;
 
-        // Modal dışına tıklayınca kapanma özelliği
-            TouchArea {
+        TouchArea {
             clicked => {
                 root.show_about_modal = false;
             }
@@ -414,11 +413,9 @@ export component AppWindow inherits Window {
             border-radius: 12px;
             border-width: 1px;
             border-color: #333333;
-                // Hafif bir gölge efekti (Drop shadow simülasyonu)
-                clip: true;
+            clip: true;
 
-            // --- Sağ Üst Kapatma Çarpısı ---
-                Rectangle {
+            Rectangle {
                 x: parent.width - 35px;
                 y: 10px;
                 width: 25px;
@@ -445,7 +442,6 @@ export component AppWindow inherits Window {
                 alignment: start;
                 //padding-bottom: 10px;
 
-                // Başlık Grubu
                     HorizontalLayout {
                     alignment: center;
                     spacing: 8px;
@@ -455,19 +451,18 @@ export component AppWindow inherits Window {
                         text: "Justext";
                         font-size: 26px;
                         font-weight: 800;
-                        color: #c061cb; // Daha canlı bir mor tonu
-                        }
+                        color: #c061cb;
+                    }
 
                     Text {
-                        text: "v0.1.0";
+                        text: "v1.0.0";
                         font-size: 14px;
                         color: #666666;
                         vertical-alignment: bottom;
                     }
                 }
 
-                // Slogan
-                    Text {
+                Text {
                     text: "Just a text editor.";
                     color: #bbbbbb;
                     font-size: 14px;
