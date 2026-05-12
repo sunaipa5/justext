@@ -35,9 +35,9 @@ tasks:
   build-gz:
     cmds:
       - mkdir -p bundles/{{.VERSION}}
-      - |
-        tar -czf bundles/{{.VERSION}}/{{.APP_NAME}}-{{.VERSION}}-linux-x86_64.tar.gz \
-          target/release/justext \
-          rpmdude_build/SOURCES/justext.desktop \
-          rpmdude_build/SOURCES/justext.png
+      - >
+        tar -czf bundles/{{.VERSION}}/{{.APP_NAME}}-{{.VERSION}}-linux-x86_64.tar.gz
+        -C target/release justext
+        -C ../../rpmdude_build/SOURCES justext.desktop
+        -C ../../rpmdude_build/SOURCES justext.png
     silent: true
